@@ -1,4 +1,4 @@
-"""Render the two official Skill releases for CC Switch, without running upstream code."""
+"""Render the official Graphify Skill release for CC Switch, without running upstream code."""
 import argparse
 import hashlib
 import io
@@ -7,13 +7,11 @@ from pathlib import Path, PurePosixPath
 import re
 import shutil
 import stat
-from urllib.parse import urlencode, urlsplit
+from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 from zipfile import ZipFile
 
 GRAPHIFY = "https://github.com/Graphify-Labs/graphify"
-CLAW = "https://clawhub.ai"
-SLUG = "skill-vetter-bak"
 LIMIT = 24 * 1024 * 1024
 
 def fetch(url, limit=LIMIT):
@@ -22,7 +20,7 @@ def fetch(url, limit=LIMIT):
         parsed = urlsplit(response.geturl())
         if parsed.scheme != "https" or parsed.hostname not in {
             "api.github.com", "github.com", "release-assets.githubusercontent.com",
-            "objects.githubusercontent.com", "clawhub.ai", "www.clawhub.ai",
+            "objects.githubusercontent.com",
         }:
             raise ValueError("Unexpected upstream download location")
         data = response.read(limit + 1)
@@ -72,22 +70,6 @@ def graphify_files(data, release):
     skill_head(selected["SKILL.md"],"graphify")
     return selected
 
-def vetter_files(data, canonical, release):
-    selected={}
-    with ZipFile(io.BytesIO(data)) as archive:
-        for member in archive.infolist():
-            n=member.filename
-            if n not in {"SKILL.md","skill-card.md","_meta.json"} or n in selected:
-                raise ValueError("Unexpected file in approved skill-vetter release")
-            selected[n]=read_member(archive,member)
-    if selected.get("SKILL.md")!=canonical:
-        raise ValueError("ClawHub ZIP differs from its versioned canonical file")
-    if "_meta.json" in selected:
-        if json.loads(selected.pop("_meta.json"))["version"] != release:
-            raise ValueError("Unexpected ClawHub archive version")
-    skill_head(canonical,"skill-vetter")
-    return selected
-
 def online():
     release=json.loads(fetch("https://api.github.com/repos/Graphify-Labs/graphify/releases/latest",1048576))
     g=version(release["tag_name"].removeprefix("v"))
@@ -102,13 +84,8 @@ def online():
     if "sha256:"+hashlib.sha256(wheel).hexdigest()!=asset["digest"]:
         raise ValueError("Graphify release digest mismatch")
 
-    meta=json.loads(fetch(f"{CLAW}/api/v1/skills/{SLUG}",1048576))
-    if meta["skill"]["slug"]!=SLUG or meta["owner"]["handle"]!="aysun168":
-        raise ValueError("ClawHub publisher or slug changed")
-    s=version(meta["latestVersion"]["version"])
-    bundle=fetch(f"{CLAW}/api/v1/download?"+urlencode({"slug":SLUG,"version":s}),2097152)
-    body=fetch(f"{CLAW}/api/v1/skills/{SLUG}/file?"+urlencode({"path":"SKILL.md","version":s}),2097152)
-    return (g,wheel,s,bundle,body)
+    return g, wheel
+
 
 def write(root,name,files,provenance):
     destination=root/"skills"/name
@@ -129,21 +106,18 @@ def main():
     parser.add_argument("--fixture",type=Path,help="use verified local packages instead of downloading latest")
     args=parser.parse_args()
     if args.fixture:
-        g,s="0.9.111","1.0.0"
+        g="0.9.111"
         p=args.fixture
         wheel=(p/f"graphifyy-{g}-py3-none-any.whl").read_bytes()
-        bundle=(p/f"skill-vetter-{s}.zip").read_bytes()
-        body=(p/"skill-vetter-canonical.md").read_bytes()
         if hashlib.sha256(wheel).hexdigest()!="1357a12b0f18b64ce0ab2ace16bdd5ae9c20282e192bc77f41fd6aec1ca2d006":
             raise ValueError("Graphify fixture digest mismatch")
     else:
-        g,wheel,s,bundle,body=online()
+        g,wheel=online()
     graph=graphify_files(wheel,g)
-    vetter=vetter_files(bundle,body,s)
     root=Path(__file__).resolve().parent
     write(root,"graphify",graph,{"version":g,"release":f"{GRAPHIFY}/releases/tag/v{g}","artifact_sha256":hashlib.sha256(wheel).hexdigest(),"source_file":"graphify/skill-codex.md","scope":"Skill files only; graphifyy CLI is managed separately"})
-    write(root,"skill-vetter",vetter,{"version":s,"release":f"{CLAW}/aysun168/skills/{SLUG}","artifact_sha256":hashlib.sha256(bundle).hexdigest(),"license":"MIT-0"})
-    print(f"Verified Graphify {g} and skill-vetter {s}")
+
+    print(f"Verified Graphify {g}")
 
 if __name__=="__main__":
     main()

@@ -1,12 +1,7 @@
-# CC Switch Skill source bridge
+# CC Switch Graphify Skill source bridge
 
-This independent compatibility repository exposes the upstream Graphify Codex Skill and the exact ClawHub `aysun168/skill-vetter-bak` publication in the folder format CC Switch updates. The packages are converted without installing them or executing upstream code.
+This compatibility repository exports the [official Graphify Codex Skill](https://github.com/Graphify-Labs/graphify/releases) as `skills/graphify/SKILL.md` for CC Switch.
 
-| Skill | Official source | CC Switch path |
-|---|---|---|
-| Graphify | [GitHub Releases](https://github.com/Graphify-Labs/graphify/releases) | `skills/graphify/SKILL.md` |
-| skill-vetter | [ClawHub release](https://clawhub.ai/aysun168/skills/skill-vetter-bak) | `skills/skill-vetter/SKILL.md` |
+The refresh runs every Monday at 10:00 Asia/Shanghai (02:00 UTC). It verifies the official release wheel's SHA-256 and updates only `skills/graphify`. It does not install the wheel or run upstream code. `UPSTREAM.json` records the release and artifact digest. The Skill includes the upstream notices and licenses.
 
-The refresh job checks every Monday at 10:00 Asia/Shanghai (02:00 UTC) and changes only the two exported folders. Each folder records the upstream version and artifact SHA-256. Graphify's Skill files and notices come from the verified release wheel. ClawHub's Skill file is checked against the version-specific canonical file. Unknown bundle contents stop the refresh.
-
-Graphify's Python CLI is managed separately. The exported `UPSTREAM.json` records the Skill bundle version and does not claim the executable was upgraded. Each output retains the upstream license or license reference. This repository contains no local profiles, tokens, settings, or project files.
+CC Switch manages the Skill files. Upgrade the separate Python CLI through its original tool installer.

@@ -1,4 +1,4 @@
-name: Refresh official skill packages
+name: Refresh official Graphify Skill
 on:
   workflow_dispatch:
   schedule:
@@ -16,9 +16,9 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - run: python3 -m unittest
       - run: python3 sync.py
-      - name: Commit only generated public skills
+      - name: Commit only generated Graphify Skill
         run: |
-          git add -- skills/graphify skills/skill-vetter
+          git add -- skills/graphify
           if git diff --staged --quiet; then exit 0; fi
-          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Refresh verified upstream skills'
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Refresh verified Graphify Skill'
           git push
