@@ -1,0 +1,7 @@
+{
+  "artifact_sha256": "1357a12b0f18b64ce0ab2ace16bdd5ae9c20282e192bc77f41fd6aec1ca2d006",
+  "release": "https://github.com/Graphify-Labs/graphify/releases/tag/v0.9.111",
+  "scope": "Skill files only; graphifyy CLI is managed separately",
+  "source_file": "graphify/skill-codex.md",
+  "version": "0.9.111"
+}
